@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER | Premium Cinematic Showcase</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;600&display=swap');
+
+        :root { --ink: #050505; --accent: #ffffff; }
+
+        body {
+            background-color: var(--ink); color: var(--accent);
+            font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0;
+        }
+
+        .font-geo { text-transform: uppercase; letter-spacing: -0.05em; font-weight: 200; }
+        
+        .grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.05; pointer-events: none; z-index: 9999;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; pointer-events: none; }
+
+        .cursor { position: fixed; width: 8px; height: 8px; background: white; border-radius: 50%; pointer-events: none; z-index: 10000; mix-blend-mode: difference; }
+        .cursor-follower { position: fixed; width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; pointer-events: none; z-index: 9999; transition: transform 0.1s ease; }
+
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.08); }
+
+        /* Horizontal Scroll */
+        .h-wrapper { display: flex; width: 600vw; height: 100vh; will-change: transform; }
+        .h-section { width: 100vw; height: 100vh; flex-shrink: 0; background: var(--ink); position: relative; overflow: hidden; }
+        .full-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5); }
+
+        /* Utilities */
+        .reveal-container { overflow: hidden; }
+        .reveal-item { transform: translateY(105%); }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: white; z-index: 10001; width: 0%; }
+
+        /* Marquee */
+        .marquee { white-space: nowrap; overflow: hidden; display: flex; border-y: 1px solid rgba(255,255,255,0.1); padding: 2rem 0; }
+        .marquee-content { display: flex; animation: marquee 20s linear infinite; }
+        .marquee-text { font-size: 8vw; line-height: 1; margin-right: 3rem; font-weight: 100; -webkit-text-stroke: 1px rgba(255,255,255,0.2); color: transparent; }
+        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        /* Journal/Services List */
+        .list-item { border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.5s ease; }
+        .list-item:hover { padding-left: 2rem; background: rgba(255,255,255,0.02); }
+        .hover-img { position: fixed; width: 300px; height: 400px; pointer-events: none; opacity: 0; transform: scale(0.8); z-index: 50; transition: transform 0.5s ease, opacity 0.5s ease; border-radius: 1rem; overflow: hidden; }
+    </style>
+</head>
+<body>
+
+    <div class="grain"></div>
+    <div class="progress-bar"></div>
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+    <div class="hover-img"><img src="" class="w-full h-full object-cover" id="follow-img"></div>
+    <canvas id="bg-canvas"></canvas>
+
+    <nav class="fixed top-0 w-full px-10 py-8 flex justify-between items-center z-50 mix-blend-difference">
+        <div class="glass px-6 py-2 rounded-full font-geo tracking-widest text-sm">AETHER</div>
+        <div class="flex gap-10 text-[9px] tracking-[0.3em]">
+            <a href="#work" class="hover:opacity-50 transition-opacity">WORK</a>
+            <a href="#services" class="hover:opacity-50 transition-opacity">SERVICES</a>
+            <a href="#studio" class="hover:opacity-50 transition-opacity">STUDIO</a>
+            <a href="#contact" class="hover:opacity-50 transition-opacity">CONTACT</a>
+        </div>
+    </nav>
+
+    <!-- 1. HERO SECTION -->
+    <section class="h-screen flex items-center justify-center relative">
+        <div class="text-center z-10">
+            <div class="reveal-container mb-4"><span class="reveal-item block text-[10px] tracking-[0.6em] text-white/50">CRAFTING DIGITAL NARRATIVES</span></div>
+            <h1 class="font-geo text-7xl md:text-[11rem] leading-[0.85] mb-8">
+                <div class="reveal-container"><span class="reveal-item block">WORK OF ART</span></div>
+                <div class="reveal-container"><span class="reveal-item block text-transparent" style="-webkit-text-stroke: 1px white;">VISIONS</span></div>
+            </h1>
+            <div class="reveal-container"><button class="reveal-item glass px-12 py-5 rounded-full text-[9px] tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-700">THE SHOWREEL '25</button></div>
+        </div>
+    </section>
+
+    <!-- 2. MARQUEE SECTION (Brand Identity) -->
+    <div class="marquee mb-20">
+        <div class="marquee-content">
+            <span class="marquee-text">CINEMATOGRAPHY</span>
+            <span class="marquee-text">DIRECTION</span>
+            <span class="marquee-text">POST-PRODUCTION</span>
+            <span class="marquee-text">3D WORLDS</span>
+            <!-- Duplicate for loop -->
+            <span class="marquee-text">CINEMATOGRAPHY</span>
+            <span class="marquee-text">DIRECTION</span>
+            <span class="marquee-text">POST-PRODUCTION</span>
+            <span class="marquee-text">3D WORLDS</span>
+        </div>
+    </div>
+
+    <!-- 3. SERVICES SECTION (List with Image Follow) -->
+    <section id="services" class="py-40 px-10 md:px-24">
+        <h2 class="text-xs tracking-[0.5em] opacity-30 mb-20 uppercase">Core Capabilities</h2>
+        <div class="flex flex-col">
+            <div class="list-item py-12 flex justify-between items-center group cursor-pointer" data-img="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800">
+                <span class="font-geo text-4xl md:text-6xl">01 / Creative Strategy</span>
+                <i data-lucide="arrow-up-right" class="opacity-0 group-hover:opacity-100 transition-opacity"></i>
+            </div>
+            <div class="list-item py-12 flex justify-between items-center group cursor-pointer" data-img="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800">
+                <span class="font-geo text-4xl md:text-6xl">02 / Motion Design</span>
+                <i data-lucide="arrow-up-right" class="opacity-0 group-hover:opacity-100 transition-opacity"></i>
+            </div>
+            <div class="list-item py-12 flex justify-between items-center group cursor-pointer" data-img="https://images.unsplash.com/photo-1633167606207-d840b5070fc2?auto=format&fit=crop&q=80&w=800">
+                <span class="font-geo text-4xl md:text-6xl">03 / CGI & VFX</span>
+                <i data-lucide="arrow-up-right" class="opacity-0 group-hover:opacity-100 transition-opacity"></i>
+            </div>
+            <div class="list-item py-12 flex justify-between items-center group cursor-pointer" data-img="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800">
+                <span class="font-geo text-4xl md:text-6xl">04 / Web Experience</span>
+                <i data-lucide="arrow-up-right" class="opacity-0 group-hover:opacity-100 transition-opacity"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. SEAMLESS HORIZONTAL PROJECTS (Expanded to 6) -->
+    <div id="work" class="h-scroll-container">
+        <div class="h-wrapper">
+            <section class="h-section"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1500" class="full-img" alt="1">
+                <div class="absolute inset-0 flex items-center px-10 md:px-24"><h2 class="font-geo text-6xl md:text-9xl">NOIR<br>URBAN</h2></div></section>
+            <section class="h-section"><img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1500" class="full-img" alt="2">
+                <div class="absolute inset-0 flex items-center px-10 md:px-24"><h2 class="font-geo text-6xl md:text-9xl">TECH<br>CORE</h2></div></section>
+            <section class="h-section"><img src="https://images.unsplash.com/photo-1510784722466-f2aa9c522632?auto=format&fit=crop&q=80&w=1500" class="full-img" alt="3">
+                <div class="absolute inset-0 flex items-center px-10 md:px-24"><h2 class="font-geo text-6xl md:text-9xl">PEAK<br>STATE</h2></div></section>
+            <section class="h-section"><img src="https://images.unsplash.com/photo-1542332213-9b5a5a3fab35?auto=format&fit=crop&q=80&w=1500" class="full-img" alt="4">
+                <div class="absolute inset-0 flex items-center px-10 md:px-24"><h2 class="font-geo text-6xl md:text-9xl">STEEL<br>PULSE</h2></div></section>
+            <section class="h-section"><img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=1500" class="full-img" alt="5">
+                <div class="absolute inset-0 flex items-center px-10 md:px-24"><h2 class="font-geo text-6xl md:text-9xl">VOID<br>ZERO</h2></div></section>
+            <section class="h-section"><img src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&q=80&w=1500" class="full-img" alt="6">
+                <div class="absolute inset-0 flex items-center px-10 md:px-24"><h2 class="font-geo text-6xl md:text-9xl">LIGHT<br>BEYOND</h2></div></section>
+        </div>
+    </div>
+
+    <!-- 5. STUDIO PHILOSOPHY (Split Text Interaction) -->
+    <section id="studio" class="py-40 px-10 md:px-24 flex flex-col md:flex-row gap-20 items-center">
+        <div class="md:w-1/2">
+            <div class="overflow-hidden rounded-3xl w-full h-[60vh]">
+                <img src="https://images.unsplash.com/photo-1497366811353-6870744d04b0?auto=format&fit=crop&q=80&w=1200" class="w-full h-full object-cover scale-110" id="philosophy-img">
+            </div>
+        </div>
+        <div class="md:w-1/2">
+            <h2 class="text-xs tracking-[0.5em] opacity-30 mb-8 uppercase">The Philosophy</h2>
+            <p class="font-geo text-4xl md:text-5xl leading-tight mb-10">We strip away the noise to find the essence. Minimal by design, maximal by impact.</p>
+            <p class="text-white/40 leading-relaxed max-w-md">Our atelier is dedicated to the few who understand that luxury is not about more, but about better. Every pixel, frame, and sound is intentional.</p>
+        </div>
+    </section>
+
+    <!-- 6. STATISTICS (Premium Counter) -->
+    <section class="py-32 glass border-0 rounded-0 grid grid-cols-2 md:grid-cols-4 text-center">
+        <div class="p-10 border-r border-white/5">
+            <span class="block font-geo text-6xl mb-2">128+</span>
+            <span class="text-[9px] tracking-widest opacity-40">PROJECTS COMPLETED</span>
+        </div>
+        <div class="p-10 md:border-r border-white/5">
+            <span class="block font-geo text-6xl mb-2">14</span>
+            <span class="text-[9px] tracking-widest opacity-40">INDUSTRY AWARDS</span>
+        </div>
+        <div class="p-10 border-r border-white/5">
+            <span class="block font-geo text-6xl mb-2">08</span>
+            <span class="text-[9px] tracking-widest opacity-40">COUNTRIES REACHED</span>
+        </div>
+        <div class="p-10">
+            <span class="block font-geo text-6xl mb-2">100%</span>
+            <span class="text-[9px] tracking-widest opacity-40">CREATIVE FOCUS</span>
+        </div>
+    </section>
+
+    <!-- 7. JOURNAL PREVIEW (Hover Image Grid) -->
+    <section class="py-40 px-10">
+        <h2 class="text-xs tracking-[0.5em] opacity-30 text-center mb-20">LATEST INSIGHTS</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div class="group cursor-pointer">
+                <div class="overflow-hidden rounded-2xl mb-6 aspect-video">
+                    <img src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                </div>
+                <span class="text-[9px] opacity-40 tracking-widest mb-2 block">MAR 2025</span>
+                <h4 class="font-geo text-2xl">The Future of AI in Cinema</h4>
+            </div>
+            <div class="group cursor-pointer">
+                <div class="overflow-hidden rounded-2xl mb-6 aspect-video">
+                    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                </div>
+                <span class="text-[9px] opacity-40 tracking-widest mb-2 block">FEB 2025</span>
+                <h4 class="font-geo text-2xl">Minimalism as a Strategy</h4>
+            </div>
+            <div class="group cursor-pointer">
+                <div class="overflow-hidden rounded-2xl mb-6 aspect-video">
+                    <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                </div>
+                <span class="text-[9px] opacity-40 tracking-widest mb-2 block">JAN 2025</span>
+                <h4 class="font-geo text-2xl">Crafting Digital Spaces</h4>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. CONTACT SECTION (Final) -->
+    <section id="contact" class="h-screen flex flex-col items-center justify-center">
+        <h2 class="font-geo text-5xl md:text-8xl mb-12 text-center">LET'S BUILD THE<br>UNEXPECTED</h2>
+        <div class="magnetic-wrap">
+            <a href="mailto:hello@aether.studio" class="magnetic-btn glass px-20 py-10 rounded-full text-2xl font-geo tracking-widest block transition-all duration-500 hover:bg-white hover:text-black">
+                START A PROJECT
+            </a>
+        </div>
+        <div class="mt-20 flex gap-10 opacity-30 text-[9px] tracking-[0.3em]">
+            <span>INSTAGRAM</span> <span>BEHANCE</span> <span>TWITTER</span>
+        </div>
+    </section>
+
+    <footer class="py-10 px-10 text-center text-[8px] tracking-[0.4em] opacity-30 border-t border-white/5">
+        AETHER STUDIO © 2025 | ALL RIGHTS RESERVED
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // Lenis Smooth Scroll
+        const lenis = new Lenis();
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        // Three.js Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const sphere = new THREE.Mesh(new THREE.IcosahedronGeometry(2.5, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.08 }));
+        scene.add(sphere);
+        camera.position.z = 5;
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            sphere.rotation.y += 0.001;
+            sphere.rotation.x += 0.0005;
+            renderer.render(scene, camera);
+        }
+        animate3D();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero Reveal
+        gsap.to('.reveal-item', { y: 0, stagger: 0.2, duration: 1.5, ease: "expo.out", delay: 0.5 });
+
+        // Horizontal Scroll (6 sections)
+        const hWrapper = document.querySelector('.h-wrapper');
+        gsap.to(hWrapper, {
+            x: () => -(hWrapper.scrollWidth - window.innerWidth),
+            ease: "none",
+            scrollTrigger: { trigger: ".h-scroll-container", pin: true, scrub: 1, end: () => "+=" + hWrapper.scrollWidth }
+        });
+
+        // List Image Follow Effect
+        const listItems = document.querySelectorAll('.list-item');
+        const hoverImg = document.querySelector('.hover-img');
+        const followImg = document.getElementById('follow-img');
+
+        listItems.forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                followImg.src = item.getAttribute('data-img');
+                gsap.to(hoverImg, { opacity: 1, scale: 1, duration: 0.5 });
+            });
+            item.addEventListener('mouseleave', () => {
+                gsap.to(hoverImg, { opacity: 0, scale: 0.8, duration: 0.5 });
+            });
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            gsap.to(hoverImg, { x: e.clientX + 20, y: e.clientY - 200, duration: 0.6, ease: "power3.out" });
+            gsap.to('.cursor', { x: e.clientX, y: e.clientY, duration: 0 });
+            gsap.to('.cursor-follower', { x: e.clientX - 16, y: e.clientY - 16, duration: 0.3 });
+        });
+
+        // Image Parallax (Philosophy)
+        gsap.to('#philosophy-img', {
+            y: -50,
+            scrollTrigger: { trigger: '#studio', scrub: true }
+        });
+
+        // Magnetic Button
+        const magWrap = document.querySelector('.magnetic-wrap');
+        const magBtn = document.querySelector('.magnetic-btn');
+        magWrap.addEventListener('mousemove', (e) => {
+            const rect = magWrap.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            gsap.to(magBtn, { x: x * 0.4, y: y * 0.4, duration: 0.4 });
+        });
+        magWrap.addEventListener('mouseleave', () => {
+            gsap.to(magBtn, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1, 0.3)" });
+        });
+
+        // Progress Bar
+        gsap.to('.progress-bar', { width: '100%', scrollTrigger: { scrub: 0.5 } });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
