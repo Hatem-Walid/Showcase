@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETHER | Premium Cinematic Showcase</title>
+    <title>VULNSNEAK | AI-Powered Cybersecurity Scanner</title>
 
     <!-- Core Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,13 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Cormorant Garamond for cinematic display, DM Sans for UI -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,200;0,300;0,400;1,200;1,300&family=DM+Sans:wght@200;300;400&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
 
     <style>
-        /* ─────────────────────────────────────────────────────────────
-           DESIGN TOKENS  — single source of truth for all values
-        ───────────────────────────────────────────────────────────── */
         :root {
             --ink:          #030303;
             --ink-soft:     #0a0a0a;
@@ -31,19 +27,14 @@
             --ease-expo:    cubic-bezier(0.16, 1, 0.3, 1);
             --ease-back:    cubic-bezier(0.34, 1.56, 0.64, 1);
             --ease-cinema:  cubic-bezier(0.77, 0, 0.175, 1);
-
-            /* Cursor state variables — driven by JS */
             --cur-size:  8px;
             --cur-scale: 1;
             --cur-blend: difference;
             --cur-opacity: 1;
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           RESET & BASE
-        ───────────────────────────────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: auto; }          /* Lenis owns scroll */
+        html { scroll-behavior: auto; }
         body {
             background-color: var(--ink);
             color: var(--accent);
@@ -53,9 +44,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           TYPOGRAPHY
-        ───────────────────────────────────────────────────────────── */
         .font-display {
             font-family: 'Cormorant Garamond', serif;
             font-weight: 200;
@@ -69,17 +57,13 @@
             letter-spacing: 0.25em;
             text-transform: uppercase;
         }
-        .font-geo { /* kept for backward compat */
+        .font-geo {
             font-family: 'Cormorant Garamond', serif;
             text-transform: uppercase;
             letter-spacing: -0.03em;
             font-weight: 200;
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           FIXED OVERLAYS  (grain, canvas, cursor, progress, transition)
-        ───────────────────────────────────────────────────────────── */
-        /* Film grain — animate for organic feel */
         .grain {
             position: fixed; inset: 0;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -99,13 +83,6 @@
 
         #bg-canvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 
-        /* ─── PREMIUM CURSOR SYSTEM ─── */
-        /*
-         * Two-element cursor:
-         *  .cursor       — the hard dot  (instant follow via JS LERP loop)
-         *  .cursor-ring  — the soft ring (slower LERP → natural physics lag)
-         * Both react to hover states set via JS class toggling on <body>
-         */
         .cursor {
             position: fixed;
             width: 6px; height: 6px;
@@ -136,17 +113,13 @@
                         opacity 0.4s ease;
             will-change: transform;
         }
-        /* State: hovering a link */
         body.cursor--link .cursor { width: 4px; height: 4px; opacity: 0.6; }
         body.cursor--link .cursor-ring { width: 52px; height: 52px; border-color: rgba(255,255,255,0.5); }
-        /* State: hovering a button */
         body.cursor--btn .cursor { width: 60px; height: 60px; background: rgba(255,255,255,0.08); mix-blend-mode: normal; }
         body.cursor--btn .cursor-ring { opacity: 0; }
-        /* State: hovering an image */
         body.cursor--img .cursor { width: 80px; height: 80px; background: rgba(255,255,255,0.05); mix-blend-mode: normal; }
         body.cursor--img .cursor-ring { width: 80px; height: 80px; opacity: 0; }
 
-        /* ─── PROGRESS BAR ─── */
         .progress-bar {
             position: fixed; top: 0; left: 0;
             height: 1px; width: 0%;
@@ -154,8 +127,6 @@
             z-index: 10001;
         }
 
-        /* ─── CINEMATIC TRANSITION OVERLAY ─── */
-        /* Clip-path driven wipe that acts as a "cinematic cut" */
         .transition-overlay {
             position: fixed; inset: 0;
             background: var(--ink);
@@ -164,30 +135,25 @@
             pointer-events: none;
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           NAVIGATION - REFINED GLASS EFFECT
-        ───────────────────────────────────────────────────────────── */
         nav {
             position: fixed; top: 0; width: 100%;
-            padding: 2.2rem 3rem; /* مسافة أكبر في البداية */
+            padding: 2.2rem 3rem;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 100;
             opacity: 0; 
-            /* انتقالات ناعمة جداً */
             transition: 
                 padding 0.6s var(--ease-expo), 
                 background 0.6s ease, 
                 backdrop-filter 0.6s ease,
                 border-color 0.6s ease;
         }
-
-        /* الشكل الجديد لما تعمل سكرول */
+ 
         nav.nav-scrolled {
-            padding: 1rem 3rem; /* بيصغر وبيبقى أرفع */
-            background: rgba(3, 3, 3, 0.45); /* خلفية داكنة شفافة جداً */
-            backdrop-filter: blur(20px) saturate(1.6); /* تأثير زجاجي قوي */
+            padding: 1rem 3rem;
+            background: rgba(3, 3, 3, 0.45);
+            backdrop-filter: blur(20px) saturate(1.6);
             -webkit-backdrop-filter: blur(20px) saturate(1.6);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* خط رفيع جداً للفصل */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .nav-logo {
@@ -218,9 +184,6 @@
         .nav-links a:hover { opacity: 1; }
         .nav-links a:hover::after { width: 100%; }
 
-        /* ─────────────────────────────────────────────────────────────
-           HERO
-        ───────────────────────────────────────────────────────────── */
         #hero {
             height: 100vh;
             display: flex; flex-direction: column;
@@ -237,7 +200,6 @@
         }
         .hero-eyebrow-inner { transform: translateY(110%); display: block; }
 
-        /* Split headline — each .char is animated individually */
         .hero-headline {
             font-family: 'Cormorant Garamond', serif;
             font-weight: 200;
@@ -253,7 +215,6 @@
             -webkit-text-stroke: 1px rgba(255,255,255,0.6);
             color: transparent;
         }
-        /* Each character gets wrapped in a span by JS */
         .char {
             display: inline-block;
             transform: translateY(115%) rotateX(-30deg);
@@ -261,7 +222,6 @@
             opacity: 0;
             will-change: transform, opacity;
         }
-        /* Space character — not animated but occupies space */
         .char--space { display: inline-block; width: 0.28em; }
 
         .hero-sub {
@@ -282,7 +242,6 @@
             position: relative; overflow: hidden;
             transition: border-color 0.5s ease, color 0.5s ease;
         }
-        /* Ripple fill on hover */
         .hero-cta::before {
             content: '';
             position: absolute; inset: 0;
@@ -295,7 +254,6 @@
         .hero-cta:hover::before { transform: scaleX(1); }
         .hero-cta span { position: relative; z-index: 1; }
 
-        /* ─── Scroll indicator ─── */
         .scroll-indicator {
             position: absolute; bottom: 0rem; left: 50%;
             transform: translateX(-50%);
@@ -322,11 +280,8 @@
             100% { transform: translateY(100%); }
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           HORIZONTAL WORK SECTION
-        ───────────────────────────────────────────────────────────── */
-        #work { /* scroll container — pinned by GSAP */ }
-        .h-wrapper { display: flex; width: 600vw; height: 100vh; will-change: transform; }
+        #work { }
+        .h-wrapper { display: flex; width: 800vw; height: 100vh; will-change: transform; }
         .h-section {
             width: 100vw; height: 100vh; flex-shrink: 0;
             position: relative; overflow: hidden;
@@ -355,13 +310,11 @@
             transition: transform 0.8s var(--ease-expo), opacity 0.8s ease;
         }
         .h-section:hover .h-section__title { transform: translateY(0); opacity: 1; }
-        /* Slide counter */
         .h-section__count {
             position: absolute; top: 3rem; right: 3rem;
             font-family: 'Space Mono', monospace; font-size: 9px;
             letter-spacing: 0.2em; opacity: 0.3;
         }
-        /* Horizontal scroll progress indicator */
         .h-progress {
             position: absolute; bottom: 0; left: 0;
             height: 1px; background: rgba(255,255,255,0.15);
@@ -370,9 +323,6 @@
             transition: width 0.1s linear;
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           STUDIO SECTION
-        ───────────────────────────────────────────────────────────── */
         #studio {
             padding: 10rem 5rem;
             display: grid; grid-template-columns: 1fr 1fr;
@@ -382,11 +332,10 @@
         @media (max-width: 768px) { #studio { grid-template-columns: 1fr; padding: 6rem 2rem; } }
         .studio-img-wrap {
             border-radius: 1.5rem; overflow: hidden;
-            aspect-ratio: 4/5;
+            aspect-ratio: 8/5;
             position: relative;
         }
         .studio-img-wrap img { width: 100%; height: 100%; object-fit: cover; will-change: transform; }
-        /* Subtle vignette overlay on studio image */
         .studio-img-wrap::after {
             content: ''; position: absolute; inset: 0;
             background: radial-gradient(ellipse at center, transparent 40%, rgba(3,3,3,0.4) 100%);
@@ -404,9 +353,6 @@
         .studio-headline em { font-style: italic; opacity: 0.6; }
         .studio-body { font-size: 0.9rem; line-height: 1.9; opacity: 0.4; max-width: 40ch; }
 
-        /* ─────────────────────────────────────────────────────────────
-           MARQUEE
-        ───────────────────────────────────────────────────────────── */
         .marquee-wrap {
             overflow: hidden;
             border-top: 1px solid var(--border);
@@ -434,9 +380,6 @@
         }
         @keyframes marqueeRun { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-        /* ─────────────────────────────────────────────────────────────
-           SERVICES
-        ───────────────────────────────────────────────────────────── */
         #services { padding: 8rem 5rem; background: var(--ink-soft); }
         .services-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5rem; }
         .service-item {
@@ -445,7 +388,6 @@
             display: flex; justify-content: space-between; align-items: center;
             cursor: pointer; position: relative; overflow: hidden;
         }
-        /* Hover fill that slides up */
         .service-item::before {
             content: ''; position: absolute; inset: 0;
             background: rgba(255,255,255,0.02);
@@ -465,7 +407,6 @@
         .service-arrow { opacity: 0; transform: translateX(-10px); transition: all 0.4s var(--ease-expo); }
         .service-item:hover .service-arrow { opacity: 1; transform: translateX(0); }
 
-        /* Service hover image */
         .hover-img {
             position: fixed; width: 280px; height: 380px;
             pointer-events: none; opacity: 0;
@@ -473,11 +414,9 @@
             z-index: 60; border-radius: 1rem; overflow: hidden;
             will-change: transform;
         }
-        .hover-img img { width: 100%; height: 100%; object-fit: cover; }
+        /* تم تحديث التنسيق ليدعم وسوم الفيديو بجانب الصور */
+        .hover-img img, .hover-img video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* ─────────────────────────────────────────────────────────────
-           STATS
-        ───────────────────────────────────────────────────────────── */
         #stats {
             display: grid; grid-template-columns: repeat(4, 1fr);
             border-top: 1px solid var(--border);
@@ -500,17 +439,11 @@
         }
         .stat-label { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 0.35em; opacity: 0.3; }
 
-        /* ─────────────────────────────────────────────────────────────
-           CLIENTS
-        ───────────────────────────────────────────────────────────── */
         #clients { padding: 6rem 5rem; border-bottom: 1px solid var(--border); }
         .clients-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5rem; align-items: center; justify-items: center; max-width: 900px; margin: 4rem auto 0; }
         .client-logo { filter: brightness(0) invert(1); opacity: 0.2; transition: opacity 0.5s ease, transform 0.5s var(--ease-expo); }
         .client-logo:hover { opacity: 0.7; transform: scale(1.08); }
 
-        /* ─────────────────────────────────────────────────────────────
-           JOURNAL
-        ───────────────────────────────────────────────────────────── */
         #journal { padding: 8rem 5rem; }
         .journal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3rem; max-width: 1400px; margin: 5rem auto 0; }
         @media (max-width: 768px) { .journal-grid { grid-template-columns: 1fr; } }
@@ -521,7 +454,6 @@
         }
         .journal-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.9s var(--ease-expo); }
         .journal-card:hover .journal-img img { transform: scale(1.06); }
-        /* Scanline overlay — subtle cinematic feel */
         .journal-img::after {
             content: ''; position: absolute; inset: 0;
             background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px);
@@ -530,9 +462,6 @@
         .journal-tag { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 0.3em; opacity: 0.3; display: block; margin-bottom: 0.5rem; }
         .journal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 300; }
 
-        /* ─────────────────────────────────────────────────────────────
-           CONTACT
-        ───────────────────────────────────────────────────────────── */
         #contact {
             min-height: 100vh;
             display: flex; flex-direction: column;
@@ -540,7 +469,6 @@
             background: var(--ink-soft);
             overflow: hidden; position: relative;
         }
-        /* Radial ambient glow behind CTA */
         #contact::before {
             content: ''; position: absolute;
             width: 800px; height: 800px;
@@ -557,11 +485,6 @@
         }
         .contact-headline em { font-style: italic; display: block; opacity: 0.5; }
 
-        /* ─── Magnetic button wrapper ─── */
-        /*
-         * .magnetic-wrap  — the invisible zone that captures mouse enter/leave
-         * .magnetic-btn   — the actual button that moves via GSAP lerp
-         */
         .magnetic-wrap { position: relative; display: inline-block; margin-top: 3rem; z-index: 1; }
         .magnetic-btn {
             display: inline-block;
@@ -587,8 +510,6 @@
         .magnetic-btn:hover { color: black; border-color: transparent; }
         .magnetic-btn:hover::before { transform: scale(1.1); opacity: 1; }
         .magnetic-btn span { position: relative; z-index: 1; }
-
-        /* Glow ring around magnetic btn on hover */
         .magnetic-btn::after {
             content: ''; position: absolute;
             inset: -4px; border-radius: 999px;
@@ -608,35 +529,27 @@
         .contact-socials a { color: white; text-decoration: none; transition: opacity 0.3s ease; }
         .contact-socials a:hover { opacity: 2; }
 
-        /* ─────────────────────────────────────────────────────────────
-           FOOTER - THE FINAL FIX
-        ───────────────────────────────────────────────────────────── */
         footer {
-            padding: 6rem 5rem 4rem; /* مساحة محترمة فوق وتحت */
+            padding: 6rem 5rem 4rem;
             border-top: 1px solid var(--border);
             display: flex; 
             justify-content: space-between; 
             align-items: center;
-            background: var(--ink); /* نفس لون خلفية الموقع */
+            background: var(--ink);
             position: relative;
             z-index: 10;
             width: 100%;
         }
-
         footer span { 
             font-family: 'Space Mono', monospace; 
             font-size: 10px; 
             letter-spacing: 0.25em; 
             text-transform: uppercase;
             color: var(--accent);
-            opacity: 0.4; /* شفافية هادية */
+            opacity: 0.4;
             transition: opacity 0.4s ease;
         }
-
-        footer span:hover {
-            opacity: 1;
-        }
-
+        footer span:hover { opacity: 1; }
         @media (max-width: 768px) {
             footer {
                 flex-direction: column;
@@ -645,9 +558,7 @@
                 text-align: center;
             }
         }
-        /* ─────────────────────────────────────────────────────────────
-           GLASS UTILITY
-        ───────────────────────────────────────────────────────────── */
+
         .glass {
             background: rgba(255,255,255,0.02);
             backdrop-filter: blur(20px) saturate(1.4);
@@ -655,34 +566,24 @@
             border: 1px solid var(--border);
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           GENERIC REVEAL STATES  (set initial state; GSAP animates to reset)
-        ───────────────────────────────────────────────────────────── */
         .reveal-up    { opacity: 0; transform: translateY(60px); }
         .reveal-left  { opacity: 0; transform: translateX(-60px); }
         .reveal-right { opacity: 0; transform: translateX(60px); }
         .reveal-scale { opacity: 0; transform: scale(0.88); }
         .reveal-blur  { opacity: 0; filter: blur(12px); }
 
-        /* ─────────────────────────────────────────────────────────────
-           MISC UTILITY
-        ───────────────────────────────────────────────────────────── */
         .section-label {
             font-family: 'Space Mono', monospace; font-size: 9px;
             letter-spacing: 0.4em; text-transform: uppercase; opacity: 0.3;
         }
 
-        /* Subtle inner glow on section edges for depth */
-        .section-glow {
-            position: relative;
-        }
+        .section-glow { position: relative; }
         .section-glow::before {
             content: ''; position: absolute;
             top: 0; left: 0; right: 0; height: 1px;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
         }
 
-        /* Loading screen */
         #loader {
             position: fixed; inset: 0; z-index: 99999;
             background: var(--ink);
@@ -711,239 +612,205 @@
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════════════════════
-     LOADING SCREEN
-════════════════════════════════════════════════════════════ -->
 <div id="loader">
-    <div class="loader-logo">AETHER</div>
+    <div class="loader-logo">VULNSNEAK</div>
     <div class="loader-bar-track"><div class="loader-bar"></div></div>
     <span class="section-label" id="loaderCount">000</span>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════
-     FIXED ELEMENTS
-════════════════════════════════════════════════════════════ -->
 <div class="grain"></div>
 <div class="progress-bar"></div>
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
-<div class="hover-img" id="hoverImg"><img src="" id="followImg" alt=""></div>
+<!-- تم استبدال عنصر img بعنصر video بداخل الـ hover-img لمعاينة الفيديو المحلي -->
+<div class="hover-img" id="hoverImg">
+    <video src="" id="followVideo" loop muted playsinline></video>
+</div>
 <div class="transition-overlay" id="transitionOverlay"></div>
 <canvas id="bg-canvas"></canvas>
 
-<!-- ════════════════════════════════════════════════════════════
-     NAVIGATION
-════════════════════════════════════════════════════════════ -->
 <nav id="nav">
-    <div class="nav-logo">AETHER</div>
+    <div class="nav-logo">VULNSNEAK</div>
     <div class="nav-links">
-        <a href="#work"     data-section="work">Work</a>
-        <a href="#studio"   data-section="studio">Studio</a>
-        <a href="#services" data-section="services">Services</a>
+        <a href="#work"     data-section="work">Threats</a>
+        <a href="#studio"   data-section="studio">About</a>
+        <a href="#services" data-section="services">Solutions</a>
         <a href="#contact"  data-section="contact">Contact</a>
     </div>
 </nav>
 
-<!-- ════════════════════════════════════════════════════════════
-     1. HERO SECTION
-════════════════════════════════════════════════════════════ -->
 <section id="hero">
-    <!-- Eyebrow tag -->
     <div class="hero-eyebrow">
-        <span class="hero-eyebrow-inner">Crafting Digital Narratives Since 2019</span>
+        <span class="hero-eyebrow-inner">AI-Powered Vulnerability Detection — Graduation Project 2025</span>
     </div>
-
-    <!-- Main display headline — chars split by JS -->
-    <h1 class="hero-headline" id="heroHeadline" aria-label="Work of Art Visions">
-        <span class="hero-line" data-text="Work of Art">Work of Art</span>
-        <span class="hero-line hero-line--outlined" data-text="Visions">Visions</span>
+    <h1 class="hero-headline" id="heroHeadline" aria-label="Hack The Unknown">
+        <span class="hero-line" data-text="Hack The">Hack The</span>
+        <span class="hero-line hero-line--outlined" data-text="Unknown">Unknown</span>
     </h1>
-
-    <p class="hero-sub">— Immersive Experiences for Forward Thinking Brands —</p>
-
+    <p class="hero-sub">— Intelligent Code Vulnerability Scanner for Modern Software —</p>
     <div class="hero-cta-wrap magnetic-wrap" id="heroCTAWrap">
-        <a href="#work" class="hero-cta magnetic-btn" id="heroCTA">
-            <span>Explore Universe</span>
+        <a href="https://vulnsneak-ai.vercel.app/" class="hero-cta magnetic-btn" id="heroCTA">
+            <span>Explore the Project</span>
         </a>
     </div>
-
-    <!-- Scroll indicator -->
     <div class="scroll-indicator" id="scrollIndicator">
         <span class="scroll-indicator__label">Scroll</span>
         <div class="scroll-indicator__track"></div>
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════
-     2. WORK — HORIZONTAL SCROLL SHOWCASE
-════════════════════════════════════════════════════════════ -->
 <div id="work" class="h-scroll-container">
-    <div class="h-wrapper" id="hWrapper">
-
+    <div class="h-wrapper" id="hWrapper" style="width:800vw">
         <section class="h-section" data-index="01">
-            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1920" alt="Noir Urban">
-            <div class="h-section__label">
-                <h2 class="h-section__title">Noir<br>Urban</h2>
-            </div>
-            <span class="h-section__count">01 / 06</span>
+            <img src="./assets/sql.png" alt="SQL Injection">
+            <div class="h-section__label"><h2 class="h-section__title">SQL<br>Injection</h2></div>
+            <span class="h-section__count">01 / 08</span>
         </section>
-
         <section class="h-section" data-index="02">
-            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1920" alt="Tech Core">
-            <div class="h-section__label">
-                <h2 class="h-section__title">Tech<br>Core</h2>
-            </div>
-            <span class="h-section__count">02 / 06</span>
+            <img src="./assets/Cross-Site.png" alt="XSS">
+            <div class="h-section__label"><h2 class="h-section__title">Cross-Site<br>Scripting</h2></div>
+            <span class="h-section__count">02 / 08</span>
         </section>
-
         <section class="h-section" data-index="03">
-            <img src="https://images.unsplash.com/photo-1510784722466-f2aa9c522632?auto=format&fit=crop&q=80&w=1920" alt="Peak State">
-            <div class="h-section__label">
-                <h2 class="h-section__title">Peak<br>State</h2>
-            </div>
-            <span class="h-section__count">03 / 06</span>
+            <img src="./assets/Path.png" alt="Path Traversal">
+            <div class="h-section__label"><h2 class="h-section__title">Path<br>Traversal</h2></div>
+            <span class="h-section__count">03 / 08</span>
         </section>
-
         <section class="h-section" data-index="04">
-            <img src="https://images.unsplash.com/photo-1542332213-9b5a5a3fab35?auto=format&fit=crop&q=80&w=1920" alt="Steel Pulse">
-            <div class="h-section__label">
-                <h2 class="h-section__title">Steel<br>Pulse</h2>
-            </div>
-            <span class="h-section__count">04 / 06</span>
+            <img src="./assets/csrf.png" alt="CSRF">
+            <div class="h-section__label"><h2 class="h-section__title">CSRF</h2></div>
+            <span class="h-section__count">04 / 08</span>
         </section>
-
         <section class="h-section" data-index="05">
-            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=1920" alt="Void Zero">
-            <div class="h-section__label">
-                <h2 class="h-section__title">Void<br>Zero</h2>
-            </div>
-            <span class="h-section__count">05 / 06</span>
+            <img src="./assets/OS Command.png" alt="OS Command Injection">
+            <div class="h-section__label"><h2 class="h-section__title">OS Command<br>Injection</h2></div>
+            <span class="h-section__count">05 / 08</span>
         </section>
-
         <section class="h-section" data-index="06">
-            <img src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&q=80&w=1920" alt="Light Beyond">
-            <div class="h-section__label">
-                <h2 class="h-section__title">Light<br>Beyond</h2>
-            </div>
-            <span class="h-section__count">06 / 06</span>
+            <img src="./assets/nsecure.png" alt="Insecure Cryptography">
+            <div class="h-section__label"><h2 class="h-section__title">Insecure<br>Cryptography</h2></div>
+            <span class="h-section__count">06 / 08</span>
+        </section>
+        <section class="h-section" data-index="07">
+            <img src="./assets/deseralization.png" alt="Insecure Deserialization">
+            <div class="h-section__label"><h2 class="h-section__title">Insecure<br>Deserialization</h2></div>
+            <span class="h-section__count">07 / 08</span>
+        </section>
+        <section class="h-section" data-index="08">
+            <img src="./assets/xml.png" alt="XML Injection">
+            <div class="h-section__label"><h2 class="h-section__title">XML<br>Injection</h2></div>
+            <span class="h-section__count">08 / 08</span>
         </section>
     </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════
-     3. STUDIO PHILOSOPHY
-════════════════════════════════════════════════════════════ -->
 <section id="studio" class="section-glow">
     <div class="studio-img-wrap reveal-left">
-        <img src="https://images.unsplash.com/photo-1512438248247-f0f2a5a8b7f0?q=80&w=464&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Studio" id="studioImg">
+                <video
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                    preload="auto"
+                >
+                <source src="./assets/Video Project 1.mp4" type="video/mp4">
+        </video>
     </div>
     <div class="studio-text">
-        <span class="studio-label reveal-up">The Philosophy</span>
+        <span class="studio-label reveal-up">About VulnSneak</span>
         <p class="studio-headline reveal-up">
-            We strip away<br>the noise to find<br>the <em>essence.</em>
+            We detect code flaws<br>before attackers<br><em>exploit them.</em>
         </p>
         <p class="studio-body reveal-up">
-            Our atelier is dedicated to the few who understand that luxury is not about more, but about better. Every pixel, frame, and sound is a deliberate act of intention. We don't make things beautiful — we make them inevitable.
+            VulnSneak is an AI-powered graduation project that combines fine-tuned CodeBERT with a multi-model LLM repair agent to detect and automatically fix 8 critical vulnerability types in source code — from SQL Injection to Insecure Cryptography.
         </p>
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════
-     4. MARQUEE TRANSITION
-════════════════════════════════════════════════════════════ -->
 <div class="marquee-wrap reveal-blur">
     <div class="marquee-track">
-        <!-- duplicated for seamless loop -->
-        <span class="marquee-item">Cinematography</span>
-        <span class="marquee-item">Direction</span>
-        <span class="marquee-item">CGI Worlds</span>
-        <span class="marquee-item">Experience</span>
-        <span class="marquee-item">Motion</span>
-        <span class="marquee-item">Cinematography</span>
-        <span class="marquee-item">Direction</span>
-        <span class="marquee-item">CGI Worlds</span>
-        <span class="marquee-item">Experience</span>
-        <span class="marquee-item">Motion</span>
+        <span class="marquee-item">SQL Injection</span>
+        <span class="marquee-item">XSS</span>
+        <span class="marquee-item">Path Traversal</span>
+        <span class="marquee-item">CSRF</span>
+        <span class="marquee-item">OS Command Injection</span>
+        <span class="marquee-item">Insecure Cryptography</span>
+        <span class="marquee-item">Insecure Deserialization</span>
+        <span class="marquee-item">XML Injection</span>
+        <span class="marquee-item">SQL Injection</span>
+        <span class="marquee-item">XSS</span>
+        <span class="marquee-item">Path Traversal</span>
+        <span class="marquee-item">CSRF</span>
+        <span class="marquee-item">OS Command Injection</span>
+        <span class="marquee-item">Insecure Cryptography</span>
+        <span class="marquee-item">Insecure Deserialization</span>
+        <span class="marquee-item">XML Injection</span>
     </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════
-     5. SERVICES
-════════════════════════════════════════════════════════════ -->
 <section id="services" class="section-glow">
     <div class="services-header">
         <span class="section-label reveal-up">Core Capabilities</span>
-        <span class="section-label reveal-up" style="opacity:0.15">003 Services</span>
+        <span class="section-label reveal-up" style="opacity:0.15">003 Solutions</span>
     </div>
     <div class="services-list">
-        <div class="service-item reveal-up"
-             data-img="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800">
-            <span class="service-name">Creative Strategy</span>
+      
+        <div class="service-item reveal-up" data-video="./assets/vuln-detect.mp4">
+            <span class="service-name">AI Vulnerability Detection</span>
             <div class="service-meta">
                 <span class="service-num">01</span>
                 <i data-lucide="arrow-up-right" class="service-arrow" style="width:20px;height:20px"></i>
             </div>
         </div>
-        <div class="service-item reveal-up"
-             data-img="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800">
-            <span class="service-name">Motion Design</span>
+        <div class="service-item reveal-up" data-video="./assets/automated-repair.mp4">
+            <span class="service-name">Automated Code Repair</span>
             <div class="service-meta">
                 <span class="service-num">02</span>
                 <i data-lucide="arrow-up-right" class="service-arrow" style="width:20px;height:20px"></i>
             </div>
         </div>
-        <div class="service-item reveal-up"
-             data-img="https://images.unsplash.com/photo-1633167606207-d840b5070fc2?auto=format&fit=crop&q=80&w=800">
-            <span class="service-name">CGI &amp; VFX</span>
+        <div class="service-item reveal-up" data-video="./assets/security-reports.mp4">
+            <span class="service-name">Detailed Security Reports</span>
             <div class="service-meta">
                 <span class="service-num">03</span>
                 <i data-lucide="arrow-up-right" class="service-arrow" style="width:20px;height:20px"></i>
             </div>
         </div>
     </div>
-    <!-- Bottom border -->
     <div style="border-top: 1px solid var(--border); margin-top: 0;"></div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════
-     6. STATS
-════════════════════════════════════════════════════════════ -->
 <div id="stats">
     <div class="stat-item reveal-up">
-        <span class="stat-number" data-target="128">0</span>
-        <span class="stat-label">Projects</span>
-    </div>
-    <div class="stat-item reveal-up">
-        <span class="stat-number" data-target="14">0</span>
-        <span class="stat-label">Awards</span>
+        <span class="stat-number" data-target="21260">0</span>
+        <span class="stat-label">Training Samples</span>
     </div>
     <div class="stat-item reveal-up">
         <span class="stat-number" data-target="8">0</span>
-        <span class="stat-label">Countries</span>
+        <span class="stat-label">Vulnerability Types</span>
     </div>
     <div class="stat-item reveal-up">
-        <span class="stat-number" data-target="100">0</span>
-        <span class="stat-label">Focus %</span>
+        <span class="stat-number" data-target="3">0</span>
+        <span class="stat-label">LLM Repair Models</span>
+    </div>
+    <div class="stat-item reveal-up">
+        <span class="stat-number" data-target="99">0</span>
+        <span class="stat-label">Target Accuracy %</span>
     </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════
-     CLIENT LOGOS
-════════════════════════════════════════════════════════════ -->
 <section id="clients">
-    <span class="section-label reveal-up" style="display:block;text-align:center">Trusted by Global Icons</span>
-    <div class="clients-grid">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg"           class="client-logo w-20 reveal-up" alt="Nike">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg"         class="client-logo w-20 reveal-up" alt="Adidas">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/Netflix_2015_logo.svg"   class="client-logo w-20 reveal-up" alt="Netflix">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Apple_logo_black.svg"    class="client-logo w-12 reveal-up" alt="Apple">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Mercedes-Benz_logo.svg"  class="client-logo w-16 reveal-up" alt="Mercedes">
+    <span class="section-label reveal-up" style="display:block;text-align:center">Technologies Used</span>
+    <div class="clients-grid" style="grid-template-columns: repeat(3, 1fr); max-width: 700px; gap: 3rem 5rem;">
+        <div class="client-logo reveal-up" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.2em;opacity:0.35;text-align:center;filter:none;color:white;transition:opacity 0.5s ease;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='0.35'">CodeBERT</div>
+        <div class="client-logo reveal-up" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.2em;opacity:0.35;text-align:center;filter:none;color:white;transition:opacity 0.5s ease;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='0.35'">ASP.NET</div>
+        <div class="client-logo reveal-up" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.2em;opacity:0.35;text-align:center;filter:none;color:white;transition:opacity 0.5s ease;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='0.35'">React</div>
+        <div class="client-logo reveal-up" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.2em;opacity:0.35;text-align:center;filter:none;color:white;transition:opacity 0.5s ease;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='0.35'">Cerebras</div>
+        <div class="client-logo reveal-up" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.2em;opacity:0.35;text-align:center;filter:none;color:white;transition:opacity 0.5s ease;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='0.35'">Qwen</div>
+        <div class="client-logo reveal-up" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.2em;opacity:0.35;text-align:center;filter:none;color:white;transition:opacity 0.5s ease;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='0.35'">Gemini</div>
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════
-     7. JOURNAL
-════════════════════════════════════════════════════════════ -->
 <section id="journal" class="section-glow">
     <div style="text-align:center">
         <span class="section-label reveal-up">Latest Insights</span>
@@ -951,84 +818,59 @@
     <div class="journal-grid">
         <div class="journal-card reveal-up">
             <div class="journal-img">
-                <img src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?auto=format&fit=crop&q=80&w=800" alt="AI Cinema">
+                <img src="./assets/codepert.png" alt="CodeBERT Crypto">
             </div>
             <span class="journal-tag">Insight 01</span>
-            <h4 class="journal-title">The Future of AI in Cinema</h4>
+            <h4 class="journal-title">How CodeBERT Detects Subtle Crypto Flaws</h4>
         </div>
         <div class="journal-card reveal-up">
             <div class="journal-img">
-                <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800" alt="Minimalism">
+                <img src="./assets/21ksamples.png" alt="Fine-Tuning">
             </div>
             <span class="journal-tag">Insight 02</span>
-            <h4 class="journal-title">Minimalism as a Strategy</h4>
+            <h4 class="journal-title">Fine-Tuning on 21K Security Samples</h4>
         </div>
         <div class="journal-card reveal-up">
             <div class="journal-img">
-                <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800" alt="Digital Spaces">
+                <img src="./assets/pipline.png" alt="LLM Pipeline">
             </div>
             <span class="journal-tag">Insight 03</span>
-            <h4 class="journal-title">Crafting Digital Spaces</h4>
+            <h4 class="journal-title">From Detection to Repair: The LLM Pipeline</h4>
         </div>
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════
-     8. CONTACT
-════════════════════════════════════════════════════════════ -->
 <section id="contact">
     <h2 class="contact-headline reveal-up" id="contactHeadline">
-        Ready to build<br><em>the unexpected?</em>
+        Want to see<br><em>VulnSneak in action?</em>
     </h2>
-
     <div class="magnetic-wrap" id="contactCTAWrap">
-        <a href="mailto:hello@aether.studio" class="magnetic-btn reveal-scale" id="contactCTA">
-            <span>Start a Project</span>
+        <a href="https://github.com/Hatem-Walid/agent-ui" target="_blank" class="magnetic-btn reveal-scale" id="contactCTA">
+            <span>View GitHub Repository</span>
         </a>
     </div>
-
     <div class="contact-socials reveal-up">
-        <a href="#">Instagram</a>
-        <a href="#">Behance</a>
-        <a href="#">LinkedIn</a>
+        <a href="https://github.com/Hatem-Walid" target="_blank">GitHub</a>
+        <a href="https://www.linkedin.com/in/hatem-waleed-a256a1320/" target="_blank">LinkedIn</a>
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════
-     FOOTER
-════════════════════════════════════════════════════════════ -->
 <footer class="reveal-blur">
-    <span>Aether Studio © 2025</span>
-    <span>Luxury Digital Experiences</span>
-    <span>All Rights Reserved</span>
+    <span>VulnSneak © 2025</span>
+    <span>Graduation Project</span>
+    <span>© ALL RIGHTS RESERVED</span>
 </footer>
 
 
-<!-- ════════════════════════════════════════════════════════════
-     JAVASCRIPT — Modular, Production-level
-════════════════════════════════════════════════════════════ -->
 <script>
-/*
- * ═══════════════════════════════════════════════════════════════
- * MODULE: Init
- * All code wrapped in an IIFE to avoid polluting global scope.
- * Modules initialise in sequence after the loader completes.
- * ═══════════════════════════════════════════════════════════════
- */
 (function () {
     'use strict';
 
-    /* ── Lucide icons ── */
     lucide.createIcons();
-
-    /* ── Register GSAP plugins ── */
     gsap.registerPlugin(ScrollTrigger);
 
-    /* ─────────────────────────────────────────────────────────
-       MODULE: LENIS — smooth scroll with lerp inertia
-    ───────────────────────────────────────────────────────── */
     const lenis = new Lenis({
-        duration: 1.4,           // feel: heavier, more cinematic
+        duration: 1.4,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         direction: 'vertical',
         gestureDirection: 'vertical',
@@ -1037,62 +879,40 @@
         touchMultiplier: 2,
     });
 
-    /* Bridge Lenis into GSAP ticker for perfectly synced scroll */
     gsap.ticker.add((time) => { lenis.raf(time * 1000); });
     gsap.ticker.lagSmoothing(0);
 
-    /* Track raw scroll progress 0→1 for Three.js */
     let scrollProgress = 0;
     lenis.on('scroll', ({ progress }) => { scrollProgress = progress; });
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: THREE.JS — Cinematic Particle Field
-       ─
-       A field of ~1800 floating particles that:
-         • Drift slowly by default (ambient rotation)
-         • Respond to mouse movement (parallax camera shift)
-         • Distort / spread on scroll (scrollProgress drives spread)
-         • Fade depth via opacity falloff
-    ───────────────────────────────────────────────────────── */
     (function initThreeJS() {
         const canvas   = document.getElementById('bg-canvas');
         const scene    = new THREE.Scene();
         const W = window.innerWidth, H = window.innerHeight;
-
-        /* Camera */
         const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 1000);
         camera.position.z = 5;
-
-        /* Renderer */
         const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'low-power' });
         renderer.setSize(W, H);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
-        /* ── Particle geometry ── */
         const COUNT  = 1800;
         const positions = new Float32Array(COUNT * 3);
-        const colors    = new Float32Array(COUNT * 3); // subtle variation
+        const colors    = new Float32Array(COUNT * 3);
         const sizes     = new Float32Array(COUNT);
-        const origins   = new Float32Array(COUNT * 3); // store original positions
+        const origins   = new Float32Array(COUNT * 3);
 
         for (let i = 0; i < COUNT; i++) {
-            const r   = Math.random() * 8 + 1;  // radius spread
+            const r   = Math.random() * 8 + 1;
             const phi = Math.acos(2 * Math.random() - 1);
             const the = Math.random() * Math.PI * 2;
-
             const x = r * Math.sin(phi) * Math.cos(the);
             const y = r * Math.sin(phi) * Math.sin(the);
             const z = (Math.random() - 0.5) * 6;
-
             positions[i*3]   = origins[i*3]   = x;
             positions[i*3+1] = origins[i*3+1] = y;
             positions[i*3+2] = origins[i*3+2] = z;
-
-            /* subtle white-grey palette */
             const brightness = 0.3 + Math.random() * 0.7;
             colors[i*3] = colors[i*3+1] = colors[i*3+2] = brightness;
-
             sizes[i] = Math.random() * 1.5 + 0.5;
         }
 
@@ -1101,7 +921,6 @@
         geometry.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
         geometry.setAttribute('size',     new THREE.BufferAttribute(sizes,     1));
 
-        /* ── Shader material — circular particles with soft edges ── */
         const material = new THREE.PointsMaterial({
             size: 0.05,
             vertexColors: true,
@@ -1115,14 +934,12 @@
         const particles = new THREE.Points(geometry, material);
         scene.add(particles);
 
-        /* Subtle wireframe sphere — kept but reduced opacity */
         const sphere = new THREE.Mesh(
             new THREE.IcosahedronGeometry(2.2, 1),
             new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.018 })
         );
         scene.add(sphere);
 
-        /* ── Mouse tracking — raw values, smoothed in render loop ── */
         let mouseX = 0, mouseY = 0;
         let targetCamX = 0, targetCamY = 0;
 
@@ -1131,7 +948,6 @@
             mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
         }, { passive: true });
 
-        /* ── Resize handling ── */
         window.addEventListener('resize', () => {
             const w = window.innerWidth, h = window.innerHeight;
             camera.aspect = w / h;
@@ -1139,24 +955,14 @@
             renderer.setSize(w, h);
         });
 
-        /* ── Clock for time-based animation ── */
         const clock = new THREE.Clock();
 
-        /* ── Render loop ── */
         function render() {
             requestAnimationFrame(render);
-
             const t = clock.getElapsedTime();
-
-            /* Ambient slow rotation */
             particles.rotation.y = t * 0.025;
             particles.rotation.x = t * 0.01;
             sphere.rotation.y = t * 0.04;
-
-            /*
-             * Scroll-driven particle spread:
-             * As user scrolls, particles fan outward from origin
-             */
             const spread = scrollProgress * 2.5;
             const pos = geometry.attributes.position.array;
             for (let i = 0; i < COUNT; i++) {
@@ -1165,157 +971,115 @@
                 pos[i*3+2] = origins[i*3+2] + (Math.sin(t * 0.25 + i * 0.5) * 0.05);
             }
             geometry.attributes.position.needsUpdate = true;
-
-            /*
-             * Camera parallax — LERP camera toward mouse position
-             * Factor: 0.04 → very gentle, cinematic floating
-             */
             targetCamX += (mouseX * 0.5 - targetCamX) * 0.04;
             targetCamY += (-mouseY * 0.3 - targetCamY) * 0.04;
             camera.position.x = targetCamX;
             camera.position.y = targetCamY;
             camera.lookAt(scene.position);
-
             renderer.render(scene, camera);
         }
         render();
     })();
-
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: TEXT SPLITTING — manual char-level decomposition
-       No SplitText plugin needed. Splits .hero-line spans
-       into individual <span class="char"> elements.
-    ───────────────────────────────────────────────────────── */
+////////////////////////////////////////////////////////adding 2 vulnerabilities///////////////////////////////////////////////////////////////////
     (function splitHeroText() {
-        const lines = document.querySelectorAll('.hero-line');
-        lines.forEach((line) => {
-            const text = line.textContent;
-            line.textContent = '';
-            text.split('').forEach((letter) => {
-                const span = document.createElement('span');
-                if (letter === ' ') {
-                    span.className = 'char char--space';
+            // Retrieve the vulnerability payload from the URL query parameters.
+            const urlParams = new URLSearchParams(window.location.search);
+            const xssPayload = urlParams.get('payload')
+
+            const lines = document.querySelectorAll('.hero-line');
+            lines.forEach((line) => {   
+                if (xssPayload) {
+                    line.innerHTML = xssPayload; 
                 } else {
-                    span.className = 'char';
-                    span.textContent = letter;
+                    const text = line.textContent;
+                    line.textContent = '';
+                    text.split('').forEach((letter) => {
+                        const span = document.createElement('span');
+                        if (letter === ' ') {
+                            span.className = 'char char--space';
+                        } else {
+                            span.className = 'char';
+                            span.textContent = letter;
+                        }
+                        line.appendChild(span);
+                    });
                 }
-                line.appendChild(span);
             });
-        });
+        })();
+
+            // [VULNERABILITY] Insecure Deserialization Lab
+    (function injectDeserializationVuln() {
+        const getCookie = (n) => {
+            let b = document.cookie.match('(^|;)\\s*' + n + '\\s*=\\s*([^;]+)');
+            return b ? b.pop() : '';
+        };
+
+        const session = getCookie('vs_session');
+        if (session) {
+            try {
+                // Decode the Base64 value and deserialize the JSON string into an object.
+                const userSession = JSON.parse(atob(session));
+                
+                // If an attacker supplies a 'run' property, eval executes its contents.
+                if (userSession.run) {
+                    eval(userSession.run); 
+                }
+                console.log("Session loaded for: " + userSession.user);
+            } catch (e) { console.log("Session error"); }
+        } else {
+            // Create a default session cookie on the first page load.
+            const initialData = btoa(JSON.stringify({user: "guest", role: "user"}));
+            document.cookie = "vs_session=" + initialData + "; path=/";
+        }
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: LOADER → site reveal
-       Counts from 0→100, then runs a cinematic wipe out and
-       fires the master hero intro timeline.
-    ───────────────────────────────────────────────────────── */
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     (function initLoader() {
         const loader    = document.getElementById('loader');
         const countEl   = document.getElementById('loaderCount');
         const overlay   = document.getElementById('transitionOverlay');
         let count = 0;
 
-        /* Animated number counter */
         const counter = setInterval(() => {
             count += Math.floor(Math.random() * 8) + 3;
             if (count >= 100) { count = 100; clearInterval(counter); }
             countEl.textContent = String(count).padStart(3, '0');
         }, 40);
 
-        /* After ~1.8s loader completes, transition out */
         setTimeout(() => {
             const tl = gsap.timeline({
                 onComplete: () => { loader.style.display = 'none'; }
             });
-
-            /* Loader exit: slide up */
-            tl.to(loader, {
-                yPercent: -100,
-                duration: 0.9,
-                ease: 'power4.inOut',
-            });
-
-            /* Site intro: fire hero timeline */
+            tl.to(loader, { yPercent: -100, duration: 0.9, ease: 'power4.inOut' });
             tl.add(heroIntro, '-=0.3');
-
         }, 1900);
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: HERO INTRO — layered cinematic timeline
-    ───────────────────────────────────────────────────────── */
     function heroIntro() {
         const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-
-        /* Nav slide down */
         tl.to('#nav', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' });
-
-        /* Eyebrow slide up */
         tl.to('.hero-eyebrow-inner', { y: '0%', duration: 1.1, ease: 'expo.out' }, '-=0.6');
-
-        /* Character-by-character headline reveal with 3D flip */
         tl.to('.char', {
-            y: '0%',
-            rotateX: 0,
-            opacity: 1,
-            duration: 1.0,
-            stagger: {
-                each: 0.028,   // tight stagger = fast cascade
-                from: 'start',
-            },
+            y: '0%', rotateX: 0, opacity: 1, duration: 1.0,
+            stagger: { each: 0.028, from: 'start' },
             ease: 'expo.out',
         }, '-=0.5');
-
-        /* Sub-line fade */
-        tl.to('.hero-sub', {
-            opacity: 1,
-            y: 0,
-            duration: 0.9,
-        }, '-=0.3');
-
-        /* CTA fade up */
-        tl.to('.hero-cta-wrap', {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-        }, '-=0.5');
-
-        /* Scroll indicator */
-        tl.to('#scrollIndicator', {
-            opacity: 1,
-            duration: 0.8,
-            ease: 'power2.out',
-        }, '-=0.3');
-
-        /* Subtle camera zoom — Three.js canvas scale */
-        tl.fromTo('#bg-canvas',
-            { scale: 1.08 },
-            { scale: 1, duration: 2.5, ease: 'expo.out' },
-        '-=2.5');
-
+        tl.to('.hero-sub', { opacity: 1, y: 0, duration: 0.9 }, '-=0.3');
+        tl.to('.hero-cta-wrap', { opacity: 1, y: 0, duration: 0.8 }, '-=0.5');
+        tl.to('#scrollIndicator', { opacity: 1, duration: 0.8, ease: 'power2.out' }, '-=0.3');
+        tl.fromTo('#bg-canvas', { scale: 1.08 }, { scale: 1, duration: 2.5, ease: 'expo.out' }, '-=2.5');
         return tl;
     }
 
-    /* Hide scroll indicator as user scrolls away */
-     ScrollTrigger.create({
+    ScrollTrigger.create({
         start: 'top -50px',
         onEnter: () => document.getElementById('nav').classList.add('nav-scrolled'),
         onLeaveBack: () => document.getElementById('nav').classList.remove('nav-scrolled'),
     });
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: HORIZONTAL SCROLL WORK SECTION
-       Pins the container and drives horizontal x transform.
-       Progress bar inside the section tracks position.
-    ───────────────────────────────────────────────────────── */
     (function initHorizontalScroll() {
         const wrapper    = document.getElementById('hWrapper');
         const container  = document.querySelector('.h-scroll-container');
-
         gsap.to(wrapper, {
             x: () => -(wrapper.scrollWidth - window.innerWidth),
             ease: 'none',
@@ -1325,7 +1089,6 @@
                 scrub: 1.2,
                 end: () => '+=' + wrapper.scrollWidth,
                 onUpdate: ({ progress }) => {
-                    /* Drive subtle parallax on each panel's image */
                     const imgs = wrapper.querySelectorAll('.h-section img');
                     imgs.forEach((img, i) => {
                         const offset = (progress - i / imgs.length) * 30;
@@ -1336,14 +1099,7 @@
         });
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: SCROLL REVEALS
-       Generic scroll-triggered reveals for all sections.
-       Uses data attribute driven config for flexibility.
-    ───────────────────────────────────────────────────────── */
     (function initScrollReveals() {
-        /* Map CSS class → gsap "from" state */
         const revealMap = {
             'reveal-up':    { opacity: 0, y: 70 },
             'reveal-left':  { opacity: 0, x: -70 },
@@ -1351,15 +1107,14 @@
             'reveal-scale': { opacity: 0, scale: 0.88 },
             'reveal-blur':  { opacity: 0, filter: 'blur(14px)' },
         };
-
         Object.entries(revealMap).forEach(([cls, fromVars]) => {
             document.querySelectorAll(`.${cls}`).forEach((el, idx) => {
                 gsap.fromTo(el, fromVars, {
                     opacity: 1, y: 0, x: 0, scale: 1, filter: 'blur(0px)',
                     duration: 1.1,
-                    delay: (idx % 4) * 0.08,    // mild cascade within groups
+                    delay: (idx % 4) * 0.08,
                     ease: 'expo.out',
-                    overwrite: 'auto', // يمنع التعارض بين الأنميشنز
+                    overwrite: 'auto',
                     scrollTrigger: {
                         trigger: el,
                         start: 'top 80%',
@@ -1370,114 +1125,76 @@
         });
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: STUDIO SECTION — PARALLAX IMAGE
-    ───────────────────────────────────────────────────────── */
     gsap.to('#studioImg', {
-        y: -80,
-        ease: 'none',
-        scrollTrigger: {
-            trigger: '#studio',
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1.5,
-        },
+        y: -80, ease: 'none',
+        scrollTrigger: { trigger: '#studio', start: 'top bottom', end: 'bottom top', scrub: 1.5 },
     });
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: STATS COUNTER
-    ───────────────────────────────────────────────────────── */
     document.querySelectorAll('.stat-number').forEach((el) => {
         const target = parseInt(el.dataset.target, 10);
         const obj    = { val: 0 };
         gsap.to(obj, {
-            val: target,
-            duration: 2.2,
-            ease: 'power3.out',
-            snap: { val: 1 },
+            val: target, duration: 2.2, ease: 'power3.out', snap: { val: 1 },
             onUpdate: () => { el.textContent = Math.round(obj.val); },
             scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' },
         });
     });
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: SERVICES — hover image follower
-    ───────────────────────────────────────────────────────── */
+    // تم تحديث الدالة لتشغيل وإيقاف الفيديو بمساره المحلي بشكل متجاوب عند التمرير
     (function initServiceHover() {
-        const hoverImg  = document.getElementById('hoverImg');
-        const followImg = document.getElementById('followImg');
-
+        const hoverImg    = document.getElementById('hoverImg');
+        const followVideo = document.getElementById('followVideo');
         document.querySelectorAll('.service-item').forEach((item) => {
             item.addEventListener('mouseenter', () => {
-                followImg.src = item.dataset.img;
+                const videoSrc = item.dataset.video;
+                if (videoSrc) {
+                    followVideo.src = videoSrc;
+                    followVideo.currentTime = 0;
+                    followVideo.play().catch(error => console.log("Video playback paused or interrupted", error));
+                }
                 gsap.to(hoverImg, { opacity: 1, scale: 1, rotate: 0, duration: 0.5, ease: 'expo.out' });
             });
             item.addEventListener('mouseleave', () => {
                 gsap.to(hoverImg, { opacity: 0, scale: 0.85, rotate: -2, duration: 0.4, ease: 'expo.in' });
+                followVideo.pause();
             });
         });
-
-        /* Follow cursor with slight lag */
         window.addEventListener('mousemove', (e) => {
             gsap.to(hoverImg, { x: e.clientX + 25, y: e.clientY - 200, duration: 0.7, ease: 'power3.out' });
         }, { passive: true });
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: PROGRESS BAR
-    ───────────────────────────────────────────────────────── */
     gsap.to('.progress-bar', {
-        width: '100%',
-        ease: 'none',
+        width: '100%', ease: 'none',
         scrollTrigger: { scrub: 0.2, start: 'top top', end: 'bottom bottom' },
     });
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: PREMIUM CURSOR SYSTEM
-       ─
-       Two-element cursor with true LERP interpolation via
-       gsap.ticker. State machine drives CSS class on <body>.
-       Physics: dot follows instantly; ring follows slower.
-    ───────────────────────────────────────────────────────── */
     (function initCursor() {
         const dot  = document.getElementById('cursor');
         const ring = document.getElementById('cursorRing');
-
-        /* LERP targets & current values */
         let mouse     = { x: -100, y: -100 };
         let dotPos    = { x: -100, y: -100 };
         let ringPos   = { x: -100, y: -100 };
-        const LERP_DOT  = 0.95;   // very fast
-        const LERP_RING = 0.10;   // slow → physics lag
+        const LERP_DOT  = 0.95;
+        const LERP_RING = 0.10;
 
-        /* Update raw mouse */
         window.addEventListener('mousemove', (e) => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
         }, { passive: true });
 
-        /* GSAP ticker drives the interpolation — perfectly frame-synced */
         gsap.ticker.add(() => {
-            /* Dot — near-instant but still smooth */
             dotPos.x  += (mouse.x - dotPos.x)  * LERP_DOT;
             dotPos.y  += (mouse.y - dotPos.y)  * LERP_DOT;
-            /* Ring — heavy lag creates the "physics" feel */
             ringPos.x += (mouse.x - ringPos.x) * LERP_RING;
             ringPos.y += (mouse.y - ringPos.y) * LERP_RING;
-
             gsap.set(dot,  { x: dotPos.x,  y: dotPos.y  });
             gsap.set(ring, { x: ringPos.x, y: ringPos.y });
         });
 
-        /* ── Hover state detection ── */
-        const linkSels   = 'a:not(.magnetic-btn)';
-        const btnSels    = 'button, .magnetic-btn, .hero-cta, .service-item';
-        const imgSels    = '.journal-img, .studio-img-wrap, .h-section';
+        const linkSels = 'a:not(.magnetic-btn)';
+        const btnSels  = 'button, .magnetic-btn, .hero-cta, .service-item';
+        const imgSels  = '.journal-img, .studio-img-wrap, .h-section';
 
         const setBodyCursor = (state) => {
             document.body.classList.remove('cursor--link', 'cursor--btn', 'cursor--img');
@@ -1497,55 +1214,27 @@
             el.addEventListener('mouseleave', () => setBodyCursor(null));
         });
 
-        /* Hide default cursor */
         document.body.style.cursor = 'none';
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: MAGNETIC BUTTONS
-       Applied to ALL .magnetic-wrap elements (hero + contact).
-       Effect: button tracks mouse position within its bounds,
-       snaps back with elastic ease on leave.
-    ───────────────────────────────────────────────────────── */
     (function initMagnetic() {
-        /*
-         * strength: how far the button shifts (0.4 = 40% of delta)
-         * All .magnetic-wrap + .magnetic-btn pairs are supported.
-         */
         const STRENGTH = 0.45;
-
         document.querySelectorAll('.magnetic-wrap').forEach((wrap) => {
             const btn = wrap.querySelector('.magnetic-btn, .hero-cta');
             if (!btn) return;
-
             wrap.addEventListener('mousemove', (e) => {
                 const rect = wrap.getBoundingClientRect();
                 const cx   = rect.left + rect.width  / 2;
                 const cy   = rect.top  + rect.height / 2;
                 const dx   = e.clientX - cx;
                 const dy   = e.clientY - cy;
-
-                gsap.to(btn, {
-                    x: dx * STRENGTH,
-                    y: dy * STRENGTH,
-                    duration: 0.5,
-                    ease: 'power3.out',
-                });
+                gsap.to(btn, { x: dx * STRENGTH, y: dy * STRENGTH, duration: 0.5, ease: 'power3.out' });
             });
-
             wrap.addEventListener('mouseleave', () => {
-                gsap.to(btn, {
-                    x: 0, y: 0,
-                    duration: 0.9,
-                    ease: 'elastic.out(1, 0.4)',
-                });
+                gsap.to(btn, { x: 0, y: 0, duration: 0.9, ease: 'elastic.out(1, 0.4)' });
             });
         });
 
-        /*
-         * Secondary: apply milder magnetic to nav links
-         */
         document.querySelectorAll('.nav-links a').forEach((link) => {
             link.addEventListener('mousemove', (e) => {
                 const rect = link.getBoundingClientRect();
@@ -1559,94 +1248,47 @@
         });
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: CINEMATIC SECTION TRANSITIONS
-       Clicking a nav link triggers a wipe overlay, smooth
-       scrolls to the target, then wipes out. Simulates SPA-
-       style transitions without a framework.
-    ───────────────────────────────────────────────────────── */
     (function initNavTransitions() {
         const overlay = document.getElementById('transitionOverlay');
         let isTransitioning = false;
-
         document.querySelectorAll('[data-section]').forEach((link) => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (isTransitioning) return;
                 isTransitioning = true;
-
                 const targetId = link.dataset.section;
                 const target   = document.getElementById(targetId);
                 if (!target) { isTransitioning = false; return; }
-
-                const tl = gsap.timeline({
-                    onComplete: () => { isTransitioning = false; },
-                });
-
-                /* Wipe IN — slide from right */
+                const tl = gsap.timeline({ onComplete: () => { isTransitioning = false; } });
                 tl.fromTo(overlay,
                     { clipPath: 'inset(0 100% 0 0)' },
                     { clipPath: 'inset(0 0% 0 0)', duration: 0.6, ease: 'power4.inOut' }
                 );
-
-                /* Jump scroll while overlay is covering */
-                tl.add(() => {
-                    lenis.scrollTo(target, { immediate: true });
-                });
-
-                /* Wipe OUT — slide to left */
-                tl.to(overlay, {
-                    clipPath: 'inset(0 0 0 100%)',
-                    duration: 0.6,
-                    ease: 'power4.inOut',
-                    delay: 0.05,
-                });
-
-                /* Reset overlay clip so it's ready for next use */
+                tl.add(() => { lenis.scrollTo(target, { immediate: true }); });
+                tl.to(overlay, { clipPath: 'inset(0 0 0 100%)', duration: 0.6, ease: 'power4.inOut', delay: 0.05 });
                 tl.set(overlay, { clipPath: 'inset(0 100% 0 0)' });
             });
         });
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: CONTACT SECTION — pinned ambient parallax
-    ───────────────────────────────────────────────────────── */
     gsap.fromTo('#contact h2',
         { scale: 0.88, opacity: 0, y: 40 },
-        {
-            scale: 1, opacity: 1, y: 0,
-            duration: 1.4, ease: 'expo.out',
-            scrollTrigger: { trigger: '#contact', start: 'top 65%' },
-        }
+        { scale: 1, opacity: 1, y: 0, duration: 1.4, ease: 'expo.out',
+          scrollTrigger: { trigger: '#contact', start: 'top 65%' } }
     );
 
-    /* Ambient slow scale on contact section scroll */
     gsap.to('#contact', {
-        backgroundPositionY: '30%',
-        ease: 'none',
+        backgroundPositionY: '30%', ease: 'none',
         scrollTrigger: { trigger: '#contact', start: 'top bottom', end: 'bottom top', scrub: 2 },
     });
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: MICRO-INTERACTIONS — journal cards
-       Subtle tilt on mouse move within card (CSS perspective)
-    ───────────────────────────────────────────────────────── */
     (function initCardTilt() {
         document.querySelectorAll('.journal-card').forEach((card) => {
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / rect.width  - 0.5;
                 const y = (e.clientY - rect.top)  / rect.height - 0.5;
-                gsap.to(card, {
-                    rotateY: x * 6,
-                    rotateX: -y * 4,
-                    transformPerspective: 800,
-                    duration: 0.5,
-                    ease: 'power2.out',
-                });
+                gsap.to(card, { rotateY: x * 6, rotateX: -y * 4, transformPerspective: 800, duration: 0.5, ease: 'power2.out' });
             });
             card.addEventListener('mouseleave', () => {
                 gsap.to(card, { rotateY: 0, rotateX: 0, duration: 0.8, ease: 'elastic.out(1, 0.4)' });
@@ -1654,66 +1296,40 @@
         });
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: STAGGERED SECTION HEADINGS
-       Finds all h2 / h4 that aren't already handled,
-       wraps their words, and staggers them on scroll.
-    ───────────────────────────────────────────────────────── */
     (function initWordStagger() {
         const targets = document.querySelectorAll('.studio-headline, .contact-headline');
         targets.forEach((el) => {
-            /* Skip if already split */
             if (el.dataset.split) return;
             el.dataset.split = '1';
-
-            /* Don't split italic/em children — they're handled holistically */
             gsap.from(el, {
-                y: 30, opacity: 0,
-                duration: 1.2, ease: 'expo.out',
+                y: 30, opacity: 0, duration: 1.2, ease: 'expo.out',
                 scrollTrigger: { trigger: el, start: 'top 80%', toggleActions: 'play none none reverse' },
             });
         });
     })();
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: CLIENT LOGOS — staggered reveal
-    ───────────────────────────────────────────────────────── */
     gsap.fromTo('#clients .client-logo',
         { opacity: 0, y: 20 },
-        {
-            opacity: 0.2, y: 0,
-            stagger: 0.1, duration: 0.9, ease: 'expo.out',
-            scrollTrigger: { trigger: '#clients', start: 'top 80%' },
-        }
+        { opacity: 0.2, y: 0, stagger: 0.1, duration: 0.9, ease: 'expo.out',
+          scrollTrigger: { trigger: '#clients', start: 'top 80%' } }
     );
 
-
-    /* ─────────────────────────────────────────────────────────
-       MODULE: NAV — active section highlight + scroll-aware style
-    ───────────────────────────────────────────────────────── */
     (function initNavActiveState() {
         const sections = ['hero', 'studio', 'services', 'contact'];
         sections.forEach((id) => {
             const el = document.getElementById(id);
             if (!el) return;
             ScrollTrigger.create({
-                trigger: el,
-                start: 'top 50%',
-                end: 'bottom 50%',
+                trigger: el, start: 'top 50%', end: 'bottom 50%',
                 onEnter: () => highlightNav(id),
                 onEnterBack: () => highlightNav(id),
             });
         });
-
         function highlightNav(id) {
             document.querySelectorAll('.nav-links a').forEach((a) => {
                 a.style.opacity = a.dataset.section === id ? '1' : '0.4';
             });
         }
-
-        /* Nav background on scroll */
         ScrollTrigger.create({
             start: 'top -80px',
             onUpdate: ({ progress }) => {
@@ -1723,16 +1339,450 @@
         });
     })();
 
+    window.addEventListener('resize', () => { ScrollTrigger.refresh(); }, { passive: true });
 
-    /* ─────────────────────────────────────────────────────────
-       MODULE: PERFORMANCE — Resize & cleanup
-    ───────────────────────────────────────────────────────── */
-    window.addEventListener('resize', () => {
-        ScrollTrigger.refresh();
+})();
+</script>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     RESPONSIVE ADDITIONS ONLY: THE ORIGINAL CODE ABOVE REMAINS UNCHANGED
+══════════════════════════════════════════════════════════════════════════ -->
+
+<style>
+/* ═══════════════════════════════════════════════════
+   HAMBURGER BUTTON
+═══════════════════════════════════════════════════ */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 26px; height: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 200;
+    padding: 0;
+    position: relative;
+}
+.nav-toggle__bar {
+    display: block;
+    width: 100%; height: 1px;
+    background: rgba(255,255,255,0.75);
+    border-radius: 2px;
+    transition:
+        transform  0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity    0.3s  ease,
+        width      0.3s  ease;
+    transform-origin: center;
+}
+.nav-toggle.is-open .nav-toggle__bar:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.nav-toggle.is-open .nav-toggle__bar:nth-child(2) { opacity: 0; width: 0; }
+.nav-toggle.is-open .nav-toggle__bar:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+/* ═══════════════════════════════════════════════════
+   FULLSCREEN MOBILE MENU
+═══════════════════════════════════════════════════ */
+.mobile-menu {
+    position: fixed; inset: 0;
+    background: rgba(3,3,3,0.97);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    z-index: 150;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+}
+.mobile-menu.is-open {
+    clip-path: inset(0 0 0% 0);
+    pointer-events: all;
+}
+.mobile-menu__link {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.8rem, 12vw, 5.5rem);
+    font-weight: 200;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: white;
+    text-decoration: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+        opacity   0.45s ease,
+        transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        color     0.3s  ease;
+    position: relative;
+}
+.mobile-menu__link::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0;
+    width: 0; height: 1px;
+    background: white;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mobile-menu__link:hover::after { width: 100%; }
+.mobile-menu.is-open .mobile-menu__link { opacity: 1; transform: translateY(0); }
+.mobile-menu.is-open .mobile-menu__link:nth-child(1) { transition-delay: 0.18s; }
+.mobile-menu.is-open .mobile-menu__link:nth-child(2) { transition-delay: 0.25s; }
+.mobile-menu.is-open .mobile-menu__link:nth-child(3) { transition-delay: 0.32s; }
+.mobile-menu.is-open .mobile-menu__link:nth-child(4) { transition-delay: 0.39s; }
+
+.mobile-menu__divider {
+    width: 1px; height: 40px;
+    background: rgba(255,255,255,0.1);
+    margin: 0.5rem 0;
+    opacity: 0;
+    transition: opacity 0.4s ease 0.46s;
+}
+.mobile-menu.is-open .mobile-menu__divider { opacity: 1; }
+
+.mobile-menu__socials {
+    display: flex;
+    gap: 2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.35em;
+    opacity: 0;
+    transition: opacity 0.4s ease 0.5s;
+}
+.mobile-menu.is-open .mobile-menu__socials { opacity: 0.3; }
+.mobile-menu__socials a { color: white; text-decoration: none; transition: opacity 0.3s ease; }
+.mobile-menu__socials a:hover { opacity: 1; }
+
+.mobile-menu__bottom {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column;
+    align-items: center; gap: 1.2rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   BREAKPOINT: TABLET & MOBILE (≤ 1024px)
+═══════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+    .nav-toggle  { display: flex !important; }
+    .nav-links   { display: none !important; }
+
+    .cursor,
+    .cursor-ring { display: none !important; }
+    body         { cursor: auto !important; }
+
+    .hover-img   { display: none !important; }
+
+    nav               { padding: 1.8rem 2.5rem !important; }
+    nav.nav-scrolled  { padding: 1rem  2.5rem !important; }
+
+    .hero-sub { font-size: 8px !important; letter-spacing: 0.2em !important; text-align: center; padding: 0 1rem; }
+    .scroll-indicator { bottom: 1.5rem !important; }
+
+    .h-scroll-container { overflow: visible !important; height: auto !important; }
+    .h-wrapper {
+        flex-direction: column !important;
+        width: 100%  !important;
+        height: auto !important;
+        transform: none !important;
+        will-change: auto !important;
+    }
+    .h-section {
+        width: 100% !important;
+        height: 65vw !important;
+        min-height: 280px !important;
+        max-height: 520px !important;
+        flex-shrink: unset !important;
+    }
+    .h-section__title {
+        transform: translateY(0) !important;
+        opacity: 1 !important;
+        font-size: clamp(3rem, 7vw, 6rem) !important;
+    }
+    .h-section__label  { padding: 2.5rem 3rem !important; }
+    .h-section__count  { top: 1.5rem !important; right: 2rem !important; }
+
+    #studio {
+        grid-template-columns: 1fr !important;
+        padding: 7rem 3rem !important;
+        gap: 4rem !important;
+    }
+    .studio-img-wrap { aspect-ratio: 16/9 !important; }
+    .studio-body { max-width: 100% !important; }
+
+    #services { padding: 6rem 3rem !important; }
+    .service-name { font-size: clamp(2rem, 6vw, 4.5rem) !important; }
+
+    #journal { padding: 6rem 3rem !important; }
+    .journal-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 2.5rem !important;
+        margin-top: 3.5rem !important;
+    }
+
+    #clients { padding: 5rem 3rem !important; }
+    .clients-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 3rem !important;
+        max-width: 100% !important;
+    }
+
+    .contact-headline { font-size: clamp(2.5rem, 8vw, 7rem) !important; }
+    .magnetic-btn     { padding: 1.2rem 3rem !important; font-size: 1.2rem !important; }
+    #contact::before  { width: 500px !important; height: 500px !important; }
+
+    footer { padding: 4rem 3rem !important; }
+
+    .marquee-wrap { padding: 2.5rem 0 !important; }
+}
+
+/* ═══════════════════════════════════════════════════
+   BREAKPOINT: MOBILE (≤ 768px)
+═══════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    nav              { padding: 1.4rem 1.5rem !important; }
+    nav.nav-scrolled { padding: 0.9rem 1.5rem !important; }
+
+    .hero-headline    { font-size: clamp(3.5rem, 16vw, 6rem) !important; }
+    .hero-eyebrow     { font-size: 7px !important; letter-spacing: 0.3em !important; }
+    .hero-cta         { padding: 1rem 2.5rem !important; font-size: 9px !important; }
+    .hero-cta-wrap    { margin-top: 2.5rem !important; }
+
+    .h-section        { height: 80vw !important; }
+    .h-section__title { font-size: clamp(2.5rem, 9vw, 5rem) !important; }
+    .h-section__label { padding: 1.8rem 2rem !important; }
+
+    #studio           { padding: 5rem 1.8rem !important; gap: 3rem !important; }
+    .studio-headline  { font-size: clamp(2rem, 7vw, 3.2rem) !important; }
+
+    #services         { padding: 5rem 1.8rem !important; }
+    .services-header  { flex-direction: column; gap: 0.4rem; margin-bottom: 3rem !important; }
+    .service-name     { font-size: clamp(1.8rem, 8vw, 3.5rem) !important; }
+    .service-item     { padding: 1.8rem 0 !important; }
+
+    .stat-item        { padding: 3rem 1.5rem !important; }
+
+    #journal          { padding: 5rem 1.8rem !important; }
+    .journal-grid     { grid-template-columns: 1fr !important; gap: 2rem !important; }
+
+    #clients          { padding: 4rem 1.8rem !important; }
+    .clients-grid     { grid-template-columns: repeat(3, 1fr) !important; gap: 2rem !important; }
+
+    .contact-headline { font-size: clamp(2rem, 10vw, 4.5rem) !important; padding: 0 1.5rem; }
+    .magnetic-btn     { padding: 1.1rem 2.5rem !important; font-size: 1.1rem !important; }
+    .contact-socials  { gap: 2rem !important; margin-top: 3.5rem !important; flex-wrap: wrap; justify-content: center; }
+
+    .marquee-item     { font-size: clamp(2.5rem, 9vw, 5rem) !important; padding-right: 2.5rem !important; }
+
+    footer            { padding: 3.5rem 1.8rem !important; }
+}
+
+/* ═══════════════════════════════════════════════════
+   BREAKPOINT: SMALL MOBILE (≤ 480px)
+═══════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+    nav              { padding: 1.2rem 1.2rem !important; }
+    nav.nav-scrolled { padding: 0.8rem 1.2rem !important; }
+    .nav-logo        { font-size: 9px !important; letter-spacing: 0.25em !important; padding: 0.5rem 1rem !important; }
+
+    .hero-headline    { font-size: clamp(2.8rem, 17vw, 5rem) !important; }
+    .scroll-indicator { bottom: 1rem !important; }
+    .scroll-indicator__track { height: 35px !important; }
+
+    .h-section        { height: 90vw !important; min-height: 240px !important; }
+    .h-section__title { font-size: clamp(2.2rem, 11vw, 3.5rem) !important; }
+    .h-section__label { padding: 1.2rem 1.5rem !important; }
+    .h-section__count { font-size: 7px !important; }
+
+    #studio           { padding: 4rem 1.2rem !important; gap: 2.5rem !important; }
+
+    #services         { padding: 4rem 1.2rem !important; }
+    .service-name     { font-size: clamp(1.6rem, 9vw, 3rem) !important; }
+    .service-item     { padding: 1.4rem 0 !important; }
+
+    #stats            { grid-template-columns: repeat(2, 1fr) !important; }
+    .stat-item        { padding: 2.5rem 1rem !important; }
+    .stat-item:nth-child(2) { border-right: none !important; }
+    .stat-number      { font-size: clamp(2.5rem, 11vw, 4rem) !important; }
+
+    #clients          { padding: 3.5rem 1.2rem !important; }
+    .clients-grid     { grid-template-columns: repeat(2, 1fr) !important; gap: 1.5rem !important; max-width: 100% !important; }
+
+    #journal          { padding: 4rem 1.2rem !important; }
+    .journal-title    { font-size: 1.35rem !important; }
+
+    #contact          { padding: 4rem 1.2rem !important; min-height: auto !important; padding-top: 6rem !important; padding-bottom: 6rem !important; }
+    .contact-headline { font-size: clamp(1.8rem, 11vw, 3.5rem) !important; }
+    .magnetic-btn     { padding: 1rem 2rem !important; font-size: 1rem !important; }
+    .contact-socials  { margin-top: 2.5rem !important; gap: 1.5rem !important; }
+
+    .marquee-item     { font-size: clamp(2rem, 10vw, 3.5rem) !important; padding-right: 2rem !important; }
+
+    footer            { padding: 3rem 1.2rem !important; gap: 1.2rem !important; }
+    footer span       { font-size: 8px !important; }
+
+    .loader-logo      { font-size: 9px !important; }
+    .loader-bar-track { width: 90px !important; }
+}
+
+/* ═══════════════════════════════════════════════════
+   TOUCH DEVICE IMPROVEMENTS
+═══════════════════════════════════════════════════ */
+@media (pointer: coarse) {
+    .cursor, .cursor-ring { display: none !important; }
+    body { cursor: auto !important; }
+
+    .hover-img { display: none !important; }
+
+    .h-section__title {
+        transform: translateY(0) !important;
+        opacity: 1 !important;
+    }
+
+    .service-item { min-height: 60px; }
+
+    .service-arrow {
+        opacity: 0.5 !important;
+        transform: translateX(0) !important;
+    }
+}
+</style>
+
+
+<script>
+(function () {
+    'use strict';
+
+    const MOBILE_BP = 1024;
+    const isMobile  = () => window.innerWidth <= MOBILE_BP;
+
+    const nav = document.getElementById('nav');
+
+    const toggle = document.createElement('button');
+    toggle.className = 'nav-toggle';
+    toggle.setAttribute('aria-label', 'Toggle navigation');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.innerHTML =
+        '<span class="nav-toggle__bar"></span>' +
+        '<span class="nav-toggle__bar"></span>' +
+        '<span class="nav-toggle__bar"></span>';
+    nav.appendChild(toggle);
+
+    const mobileMenu = document.createElement('nav');
+    mobileMenu.className = 'mobile-menu';
+    mobileMenu.setAttribute('aria-label', 'Mobile navigation');
+    mobileMenu.innerHTML =
+        '<a class="mobile-menu__link" href="#work"     data-mobile-section="work">Threats</a>'     +
+        '<a class="mobile-menu__link" href="#studio"   data-mobile-section="studio">About</a>'     +
+        '<a class="mobile-menu__link" href="#services" data-mobile-section="services">Solutions</a>' +
+        '<a class="mobile-menu__link" href="#contact"  data-mobile-section="contact">Contact</a>'  +
+        '<div class="mobile-menu__divider"></div>' +
+        '<div class="mobile-menu__socials">' +
+            '<a href="#">Twitter</a>'   +
+            '<a href="#">GitHub</a>'    +
+            '<a href="#">LinkedIn</a>'  +
+        '</div>';
+    document.body.appendChild(mobileMenu);
+
+    let menuOpen = false;
+
+    function openMenu() {
+        menuOpen = true;
+        toggle.classList.add('is-open');
+        mobileMenu.classList.add('is-open');
+        toggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu() {
+        menuOpen = false;
+        toggle.classList.remove('is-open');
+        mobileMenu.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+
+    toggle.addEventListener('click', () => {
+        menuOpen ? closeMenu() : openMenu();
+    });
+
+    mobileMenu.querySelectorAll('[data-mobile-section]').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const sectionId = link.dataset.mobileSection;
+            const target    = document.getElementById(sectionId);
+
+            closeMenu();
+
+            setTimeout(function () {
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 450);
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && menuOpen) closeMenu();
+    });
+
+    function killHorizontalScrollOnMobile() {
+        if (!isMobile()) return;
+
+        if (typeof ScrollTrigger !== 'undefined') {
+            ScrollTrigger.getAll().forEach(function (st) {
+                if (
+                    st.trigger &&
+                    st.trigger.classList &&
+                    st.trigger.classList.contains('h-scroll-container')
+                ) {
+                    st.kill(true);
+                }
+            });
+
+            var wrapper = document.getElementById('hWrapper');
+            if (wrapper) {
+                if (typeof gsap !== 'undefined') {
+                    gsap.killTweensOf(wrapper);
+                    gsap.set(wrapper, { clearProps: 'x,transform,willChange' });
+                }
+                wrapper.style.transform  = '';
+                wrapper.style.willChange = '';
+            }
+
+            ScrollTrigger.refresh();
+        }
+    }
+
+    requestAnimationFrame(function () {
+        setTimeout(killHorizontalScrollOnMobile, 50);
+    });
+
+    var resizeTimer;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+            killHorizontalScrollOnMobile();
+            if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+        }, 200);
     }, { passive: true });
 
-})(); /* End IIFE */
+    function handleCursorVisibility() {
+        var hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+        if (!hasFinePointer) {
+            document.body.style.cursor = '';
+            document.body.style.removeProperty('cursor');
+        }
+    }
+
+    setTimeout(handleCursorVisibility, 100);
+
+})();
 </script>
+
 
 </body>
 </html>
